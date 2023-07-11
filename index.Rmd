@@ -28,14 +28,13 @@ player_ids <- nflreadr::load_ff_playerids() |>
 
 picks_mfl_prep <- picks_mfl |> 
   filter(!is.na(player_id)) |> 
-  mutate(mfl_id = player_id,
-         league_id = paste0(league_id,"-",division),
-         league_name = division_name) |> 
+  mutate(mfl_id = player_id) |> 
   group_by(league_id, pos) |>
   mutate(pos_rank = rank(overall)) |> 
   ungroup() |> 
   select(league_id, league_name, round, overall, pos_rank, mfl_id) |> 
-  left_join(player_ids, by = "mfl_id", na_matches = "never")
+  left_join(player_ids, by = "mfl_id", na_matches = "never") |> 
+  mutate(league_id = as.character(league_id))
 
 picks_sleeper_prep <- picks_sleeper |> 
   filter(!is.na(player_id)) |>
