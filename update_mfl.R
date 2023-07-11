@@ -9,24 +9,24 @@ library(cli)
 
 options(dplyr.summarise.inform = FALSE,
         piggyback.verbose = FALSE)
-
 mfl_user_agent <- function(league_id){
-  paste0(Sys.getenv("MFL_USER_AGENT"),league_id)
+  paste0(Sys.getenv("MFL_USER_AGENT"), league_id)
 }
 
-# leagues <- mfl_getendpoint(mfl_connect(2022),"leagueSearch",SEARCH="#SFB12") |>
+# leagues <- mfl_getendpoint(mfl_connect(2023),"leagueSearch",SEARCH="#SFB13") |>
 #   pluck("content","leagues","league") |>
-#   rbindlist() |>
-#   filter(str_detect(name,"\\#SFB12 [0-9]+")) |>
-# select(-homeURL, league_name = name, league_id = id)
+#   rbindlist(fill = TRUE) |>
+#   filter(str_detect(name,"^\\#SFB13"), !str_detect(name, " Mock ")) |>
+#   select(-homeURL, league_name = name, league_id = id)
 #
-# fwrite(leagues,"mfl_league_ids.csv",quote = TRUE)
+# fwrite(leagues,"league_ids_mfl.csv",quote = TRUE)
 
 leagues <- fread("league_ids_mfl.csv")
 
 get_draft <- function(league_id){
+  Sys.sleep(1)
   cli::cli_alert("League ID: {league_id}")
-  conn <- mfl_connect(2022, league_id, user_agent = mfl_user_agent(league_id), rate_limit = F)
+  conn <- mfl_connect(2023, league_id, user_agent = mfl_user_agent(league_id), rate_limit = TRUE)
   ff_draft(conn)
 }
 
@@ -37,14 +37,14 @@ drafts <- leagues |>
 fwrite(drafts,"output/draft_picks_mfl.csv",quote = TRUE)
 update_time <- format(Sys.time(), tz = "America/Toronto", usetz = TRUE)
 writeLines(update_time, "output/timestamp.txt")
-pb_upload("output/draft_picks_mfl.csv", repo = "dynastyprocess/data-sfb12", tag = "data-mfl")
-pb_upload("output/timestamp.txt", repo = "dynastyprocess/data-sfb12", tag = "data-mfl")
+pb_upload("output/draft_picks_mfl.csv", repo = "dynastyprocess/data-sfb13", tag = "data-mfl")
+pb_upload("output/timestamp.txt", repo = "dynastyprocess/data-sfb13", tag = "data-mfl")
 
 drafts <- fread("output/draft_picks_mfl.csv")
 
 adp <- drafts |>
   filter(!is.na(player_id)) |>
-  group_by(league_id,division,pos) |>
+  group_by(league_id,pos) |>
   mutate(pos_rank = rank(overall)) |>
   group_by(player_id, player_name, pos, team) |>
   summarise(
@@ -64,7 +64,7 @@ adp <- drafts |>
 fwrite(adp,"output/adp_mfl.csv")
 update_time <- format(Sys.time(), tz = "America/Toronto", usetz = TRUE)
 writeLines(update_time, "output/timestamp.txt")
-pb_upload("output/adp_mfl.csv", repo = "dynastyprocess/data-sfb12", tag = "data-mfl")
-pb_upload("output/timestamp.txt", repo = "dynastyprocess/data-sfb12", tag = "data-mfl")
+pb_upload("output/adp_mfl.csv", repo = "dynastyprocess/data-sfb13", tag = "data-mfl")
+pb_upload("output/timestamp.txt", repo = "dynastyprocess/data-sfb13", tag = "data-mfl")
 
 cli::cli_alert_success("Successfully got all picks and ADP!")

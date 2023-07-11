@@ -7,16 +7,16 @@ library(stringr)
 library(piggyback)
 library(cli)
 
-leagues <- sleeper_userleagues("ScottFishBowl", 2022) |>
-select(league_id, league_name) |>
-  filter(str_detect(league_name,"\\#SFB12")) |> 
+leagues <- sleeper_userleagues("ScottFishBowl", 2023) |>
+  select(league_id, league_name) |>
+  filter(str_detect(league_name,"\\#SFB13")) |>
   mutate(league_id = as.character(league_id))
 
 fwrite(leagues,"league_ids_sleeper.csv")
 
 get_draft <- function(league_id){
   cli::cli_alert("League ID: {league_id}")
-  conn <- sleeper_connect(2022, league_id, rate_limit = F)
+  conn <- sleeper_connect(2023, league_id, rate_limit = F)
   suppressWarnings(ff_draft(conn))
 }
 
@@ -54,6 +54,6 @@ fwrite(drafts,"output/draft_picks_sleeper.csv",quote = TRUE)
 fwrite(adp,"output/adp_sleeper.csv",quote = TRUE)
 update_time <- format(Sys.time(), tz = "America/Toronto", usetz = TRUE)
 writeLines(update_time, "output/timestamp.txt")
-pb_upload("output/draft_picks_sleeper.csv", repo = "dynastyprocess/data-sfb12", tag = "data-sleeper")
-pb_upload("output/adp_sleeper.csv", repo = "dynastyprocess/data-sfb12", tag = "data-sleeper")
-pb_upload("output/timestamp.txt", repo = "dynastyprocess/data-sfb12", tag = "data-sleeper")
+pb_upload("output/draft_picks_sleeper.csv", repo = "dynastyprocess/data-sfb13", tag = "data-sleeper")
+pb_upload("output/adp_sleeper.csv", repo = "dynastyprocess/data-sfb13", tag = "data-sleeper")
+pb_upload("output/timestamp.txt", repo = "dynastyprocess/data-sfb13", tag = "data-sleeper")
