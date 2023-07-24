@@ -10,6 +10,7 @@ library(cli)
 leagues <- sleeper_userleagues("ScottFishBowl", 2023) |>
   select(league_id, league_name) |>
   filter(str_detect(league_name,"\\#SFB13")) |>
+  filter(!str_detect(league_name, "Mirror")) |>
   mutate(league_id = as.character(league_id))
 
 fwrite(leagues,"league_ids_sleeper.csv")
